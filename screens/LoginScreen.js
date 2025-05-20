@@ -1,26 +1,26 @@
+// screens/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator
 } from 'react-native';
 import * as Location from 'expo-location';
+import { decode as atob } from 'base-64';
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Ottiene lat/lon
   const getLocationAsync = async () => {
     setLoadingLocation(true);
     const { status } = await Location.requestForegroundPermissionsAsync();
+    setLoadingLocation(false);
     if (status !== 'granted') {
       Alert.alert('Permessi negati', 'Non posso ottenere la posizione');
-      setLoadingLocation(false);
       return null;
     }
     const loc = await Location.getCurrentPositionAsync({});
-    setLoadingLocation(false);
     return loc.coords;
   };
 
@@ -30,11 +30,10 @@ export default function LoginScreen({ navigation }) {
       return;
     }
     setSubmitting(true);
-
     const coords = await getLocationAsync();
 
-    let body = `email=${encodeURIComponent(email)}`
-             + `&password=${encodeURIComponent(password)}`;
+    let body = `email=${encodeURIComponent(email)}` +
+               `&password=${encodeURIComponent(password)}`;
     if (coords) {
       body += `&latitude=${coords.latitude}&longitude=${coords.longitude}`;
     }
@@ -48,31 +47,29 @@ export default function LoginScreen({ navigation }) {
           body
         }
       );
-
       const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        console.error('Raw login response:', text);
-        Alert.alert('Errore di Parsing', 'Risposta non valida dal server');
-        return;
-      }
+      console.log('RAW login response:', text);
+      const data = JSON.parse(text);
 
       if (data.status === 'success') {
-        // Reindirizza in base al ruolo
+        // ===== manual JWT decode =====
+        const parts = data.token.split('.');
+        if (parts.length !== 3) throw new Error('Token JWT non valido');
+        const payload = JSON.parse(atob(parts[1]));
+        const userId = payload.data.user_id;
+        // =============================
+
         if (data.role === 'admin') {
-          navigation.replace('Home', { role: data.role });
+          navigation.replace('Home',  { role: data.role, userId });
         } else {
-          // passiamo anche l'user_id se necessario
-          navigation.replace('Attendance', { userId: data.user_id, role: data.role });
+          navigation.replace('Attendance', { role: data.role, userId });
         }
       } else {
         Alert.alert('Login fallito', data.message || 'Credenziali non valide');
       }
-
     } catch (e) {
-      Alert.alert('Errore rete', e.message);
+      console.error(e);
+      Alert.alert('Errore rete o parsing', e.message);
     } finally {
       setSubmitting(false);
     }
@@ -97,11 +94,17 @@ export default function LoginScreen({ navigation }) {
         secureTextEntry
       />
       <Button
-        title={submitting ? 'Accedi...' : loadingLocation ? 'Ottenendo posizione...' : 'Accedi'}
+        title={submitting 
+                ? 'Accedi...' 
+                : loadingLocation 
+                  ? 'Ottenendo posizione...' 
+                  : 'Accedi'}
         onPress={doLogin}
         disabled={loadingLocation || submitting}
       />
-      {(loadingLocation || submitting) && <ActivityIndicator style={{ marginTop: 12 }} />}
+      {(loadingLocation || submitting) && (
+        <ActivityIndicator style={{ marginTop: 12 }} />
+      )}
     </View>
   );
 }
@@ -109,5 +112,6 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex:1, justifyContent:'center', padding:20 },
   title:     { fontSize:24, textAlign:'center', marginBottom:24 },
-  input:     { borderWidth:1, borderColor:'#ccc', padding:10, marginBottom:16, borderRadius:4 },
+  input:     { borderWidth:1, borderColor:'#ccc', padding:10,
+               marginBottom:16, borderRadius:4 }
 });
