@@ -119,6 +119,7 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.title}>Login</Text>
           <TextInput
             placeholder="Email"
+            placeholderTextColor="#666"
             value={email}
             onChangeText={setEmail}
             style={styles.input}
@@ -127,18 +128,23 @@ export default function LoginScreen({ navigation }) {
           />
           <TextInput
             placeholder="Password"
+            placeholderTextColor="#666"
             value={password}
             onChangeText={setPassword}
             style={styles.input}
             secureTextEntry
           />
+
           <View style={styles.switchRow}>
             <Switch
               value={stayLogged}
               onValueChange={setStayLogged}
+              trackColor={{ false: '#bbb', true: '#007bff' }}
+              thumbColor={stayLogged ? '#fff' : '#fff'}
             />
             <Text style={styles.switchLabel}>Rimani connesso</Text>
           </View>
+
           <Button
             title={
               submitting
@@ -149,6 +155,7 @@ export default function LoginScreen({ navigation }) {
             }
             onPress={doLogin}
             disabled={loadingLocation || submitting}
+            color="#007bff"
           />
           {(loadingLocation || submitting) && (
             <ActivityIndicator style={{ marginTop: 12 }} />
@@ -191,9 +198,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20
   },
   title:     { fontSize:24, marginBottom:16, color:'#333', textAlign:'center' },
-  input:     { borderWidth:1, borderColor:'#ccc', padding:10, marginBottom:12, borderRadius:4, backgroundColor:'#fff' },
+  input:     {
+    borderWidth:1,
+    borderColor:'#ccc',
+    padding:10,
+    marginBottom:12,
+    borderRadius:4,
+    backgroundColor:'#fff',
+    color: '#000'
+  },
   switchRow: { flexDirection:'row', alignItems:'center', marginBottom:16 },
-  switchLabel: { marginLeft:8, fontSize:16 },
+  switchLabel: { marginLeft:8, fontSize:16, color:'#333' },
   forgotLink: { marginTop: 16, alignSelf: 'center' },
   forgotText: { color: '#007bff', textDecorationLine: 'underline' }
 });
