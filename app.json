@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "timbrature-app",
+    "name": "TimeTrack",
     "slug": "timbrature-app",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -20,10 +20,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.digitalesecurity.timetrack"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5a5895be-7c09-43f4-a70e-29c488e68fe0"
+      }
     }
   }
 }
